@@ -210,10 +210,10 @@ export default {
 <style lang="scss" scoped>
     $radius: 5px;
     $main-color: #5F5784;
-    $label-size: 14px;
-    $title-size: 36px;
-    $section-title-size: 14px;
-    $select-size: 21px;
+    $label-size: 14pt;
+    $title-size: 36pt;
+    $section-title-size: 14pt;
+    $select-size: 21pt;
     $button-background: #79E1DE;
 
     button, select {
