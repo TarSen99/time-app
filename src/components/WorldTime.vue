@@ -4,9 +4,13 @@
             World Time
         </h1>
 
-        <p class="error-msg">
-            Error message
+        <p class="error-msg" v-if="error">
+            {{ error }}
         </p>
+
+        <div class="loader" v-if="loading">
+            Loading
+        </div>
 
         <div class="time-content">
             <div class="field-block">
@@ -93,7 +97,8 @@ export default {
             time: null,
             areas: [],
             locations: [],
-            loading: true
+            loading: true,
+            error: null
         }
     },
     computed: {
@@ -122,8 +127,11 @@ export default {
         }
     },
     mounted() {
+        this.error = null
+        this.loading = true
         get('/timezone')
         .then(res => {
+            this.loading = false
             const { data } = res
 
             const {areas, locations} = this.getBaseInfo(data)
@@ -131,11 +139,16 @@ export default {
             this.areas = areas;
             this.locations = locations;
         })
+        .catch(err => {
+                this.loading = false
+                this.setError(err)
+            })
     },
     methods: {
         reset() {
             this.area = null
             this.location = null
+            this.error = null
         },
         getBaseInfo(zonesList) {
             const areas = []
@@ -162,15 +175,19 @@ export default {
             return {areas, locations}
         },
         getTime(location) {
+            this.error = null
             this.loading = true
+
             get(`/timezone/${location}`)
             .then(res => {
                 this.loading = false
                 const { data } = res
                 this.time = this.parseTime(data.datetime, data.timezone)
             })
-            .catch(() => {
+            .catch(err => {
                 this.loading = false
+
+                this.setError(err)
             })
         },
         parseTime(date, zone) {
@@ -178,6 +195,13 @@ export default {
             .toLocaleString("en", {timeZone: zone, hour: 'numeric', minute: 'numeric'})
 
             return dateNow
+        },
+        setError(err) {
+            if(err && err.response && err.response.data && err.response.data.error) {
+                this.error = err.response.data.error
+            } else {
+                this.error = 'Unexpected Error!'
+            }
         }
     },
 }
@@ -266,5 +290,12 @@ export default {
         &:active {
             background-color: darken($button-background, 20%);
         }
+    }
+
+    .loader {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        top: 10px;
     }
 </style>
